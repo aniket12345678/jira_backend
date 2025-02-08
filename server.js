@@ -1,7 +1,10 @@
+require('dotenv').config();
 const exApp = require('express');
 const { allRoutes } = require('./app/routes');
 const app = exApp();
-require('dotenv').config();
+
+app.use(exApp.json());
+app.use(exApp.urlencoded({ extended: true }));
 
 const PORT = process.env.PORT;
 
