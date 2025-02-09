@@ -1,29 +1,30 @@
 const { DataTypes } = require("sequelize");
 const { newConnection } = require("./connection");
 
-const UserDetailsModel = newConnection.define('user_details_tbl', {
-    first_name: {
+const TaskModel = newConnection.define('tasks_tbl', {
+    title: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    last_name: {
+    description: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    user_id: {
-        type: DataTypes.INTEGER,
+    assignee_id: {
+        type: DataTypes.INTEGER, // user_id
         allowNull: false
-    },
+    }
 });
 
 (
     async () => {
         try {
-            await UserDetailsModel.sync();
+            await TaskModel.sync();
         } catch (error) {
-            console.log('UserDetailsModel err:- ', err);
+            console.log('TaskModel err:- ', err);
         }
     }
-)();
+)()
 
-module.exports = { UserDetailsModel };
+
+module.exports = { TaskModel }
