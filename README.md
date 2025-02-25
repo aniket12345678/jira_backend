@@ -1,6 +1,7 @@
 # Project Setup Instructions 
 
-Clone the project pasting https://github.com/aniket12345678/jira_backend.git in the power shell.
+**Clone the repository** using the following command in PowerShell
+ --https://github.com/aniket12345678/jira_backend.git
 
 Create a .env file in the main directory and paste the backend environment file provided in the email
 
