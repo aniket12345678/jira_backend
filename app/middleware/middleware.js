@@ -1,62 +1,41 @@
 const jwt = require('jsonwebtoken');
 
-const responseHandler = {
-    success: (res, code, message, data = {}) => {
+const ResponseHandler = {
+    success: (res, message, code, data = {}) => {
         res.status(200).send({
-            code: code,
-            data: data,
             message: message,
-        })
+            data: data,
+            code: code,
+        });
     },
     error: (res, error) => {
-        console.log('error:- ', error);
+        console.log(`error:- `, error);
         res.status(500).send({
-            code: 500,
-            message: error
-        })
-    },
-    unauthorized: (res, message) => {
-        res.status(401).send({
-            code: 401,
-            message: message
+            message: error.message,
+            code: 500
         })
     }
 }
 
 const verifyToken = () => {
-    return async (req, res, next) => {
+    return (req, res, next) => {
         try {
-            const { authorization } = req.headers;
-            if (!authorization || !authorization.includes("Bearer")) {
-                return responseHandler.unauthorized(res, "Invalid token");
+            const { authorization } = req.headers
+            if (!req.headers || !authorization) {
+                throw { error: 'Invalid token', code: 500 };
             }
-            const response = jwt.verify(authorization.split(" ")[1], process.env.JWT_KEY);
-            if (response) {
-                req.body.loggedInUser = response.fetchUser;
-                next();
-            } else {
-                return responseHandler.unauthorized(res, "Token does not matches");
+            if (!authorization.includes('Bearer')) {
+                throw { error: 'Wrong format', code: 500 };
             }
+            const decoded = jwt.verify(authorization.split(" ")[1], process.env.JWT_KEY);
+            if (!decoded) {
+                throw { error: 'Unauthorized user', code: 500 }
+            }
+            next();
         } catch (error) {
-            return responseHandler.error(res, error);
+            return ResponseHandler.error(res, error);
         }
     }
 }
 
-const joiMiddleware = (schema) => {
-    return async (req, res, next) => {
-        try {
-            const { error } = schema.validate(req.body);
-            if (error) {
-                const allErrors = error.details.map((x) => x.message);
-                return responseHandler.error(res, allErrors);
-            } else {
-                next();
-            }
-        } catch (error) {
-            return responseHandler.error(res, error);
-        }
-    }
-}
-
-module.exports = { responseHandler, joiMiddleware, verifyToken };
+module.exports = { ResponseHandler, verifyToken }
