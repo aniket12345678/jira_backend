@@ -1,46 +1,43 @@
-const { responseHandler } = require("../middleware/middleware");
-const { UserModel } = require("../models/user.model");
-const { UserDetailsModel } = require("../models/user_details.model");
+const { ResponseHandler } = require("../middleware/middleware");
+const { UserSchema } = require("../models/index.model");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const signUp = async (req, res) => {
+const SignUp = async (req, res) => {
     try {
         const store = req.body;
-        const fetchUser = await UserModel.findOne({ where: { email: store.email } });
-        if (fetchUser) {
-            return responseHandler.success(res, 401, "User already exists");
+        const UserExists = await UserSchema.findOne({ email: store.email });
+        if (UserExists) {
+            return ResponseHandler.success(res, 'User already exists', 400);
         }
         const salt = bcrypt.genSaltSync(10);
-        const hash = bcrypt.hashSync(store.password, salt);
-        store.password = hash;
-        const result = await UserModel.create(store);
-        store.user_id = result.id;
-        await UserDetailsModel.create(store);
-        return responseHandler.success(res, 200, "Data added successfully");
+        store.password = bcrypt.hashSync(store.password, salt);
+        store.user_role = 2;
+        await UserSchema.insertOne(store);
+        return ResponseHandler.success(res, 'User signed up successfully', 200);
     } catch (error) {
-        return responseHandler.error(res, error);
+        return ResponseHandler.error(res, error);
     }
-};
+}
 
-const signIn = async (req, res) => {
+const SignIn = async (req, res) => {
     try {
         const store = req.body;
-        const fetchUser = await UserModel.findOne({ where: { email: store.email } });
-        if (!fetchUser) {
-            return responseHandler.success(res, 401, "User does not exists");
+        const UserExists = await UserSchema.findOne({ email: store.email });
+        if (!UserExists) {
+            return ResponseHandler.success(res, 'User does not exists', 400);
         }
-        const isPassword = bcrypt.compareSync(store.password, fetchUser.password);
+        const isPassword = bcrypt.compareSync(store.password, UserExists.password);
         if (!isPassword) {
-            return responseHandler.success(res, 401, "Password is wrong");
+            return ResponseHandler.success(res, 'Password is wrong', 400);
         }
-        return responseHandler.success(res, 200, "Successfully logged In", {
-            user: fetchUser,
-            token: jwt.sign({ fetchUser }, process.env.JWT_KEY, { expiresIn: 10 })
+        return ResponseHandler.success(res, 'User logged in successfully', 200, {
+            user: UserExists,
+            token: jwt.sign({ UserExists }, process.env.JWT_KEY)
         });
     } catch (error) {
-        return responseHandler.error(res, error);
+        return ResponseHandler.error(res, error);
     }
-};
+}
 
-module.exports = { signUp, signIn }
+module.exports = { SignIn, SignUp }

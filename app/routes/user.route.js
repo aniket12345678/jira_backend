@@ -1,11 +1,9 @@
-const exApp = require('express');
-const AuthRoute = exApp();
+const express = require('express');
+const { SignUp, SignIn } = require('../controllers/user.controller');
 
-const { AuthJoi } = require('../validationSchema/schema');
-const { joiMiddleware } = require('../middleware/middleware');
-const { signIn, signUp } = require('../controllers/user.controller');
+const UserRoute = express();
 
-AuthRoute.post('/signup', joiMiddleware(AuthJoi.signUp), signUp);
-AuthRoute.post('/signin', joiMiddleware(AuthJoi.signIn), signIn);
+UserRoute.post('/signup', SignUp);
+UserRoute.post('/signin', SignIn);
 
-module.exports = { AuthRoute };
+module.exports = { UserRoute }
